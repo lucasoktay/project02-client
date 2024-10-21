@@ -5,24 +5,23 @@
 #
 # Authors:
 #   
-#   <<<YOUR NAME>>>
+#   <<<Lucas Oktay>>>
 #
 #   Starter code: Prof. Joe Hummel
 #   Northwestern University
 #
 
-import requests  # calling web service
-import jsons  # relational-object mapping
-
-import uuid
-import pathlib
-import logging
-import sys
-import os
 import base64
+import logging
+import os
+import pathlib
+import sys
 import time
-
+import uuid
 from configparser import ConfigParser
+
+import jsons  # relational-object mapping
+import requests  # calling web service
 
 # doesn't work in docker (not easily):
 # import matplotlib.pyplot as plt
@@ -353,22 +352,19 @@ def assets(baseurl):
 #
 # download
 #
-def download(baseurl, display=False):
+def download(baseurl):
   """
   Prompts the user for an asset id, and downloads
-  that asset (image) from the bucket. Displays the
-  image after download if display param is True.
+  that asset (image) from the bucket.
   
   Parameters
   ----------
   baseurl: baseurl for web service,
-  display: optional param controlling display of image
   
   Returns
   -------
   nothing
   """
-
   try:
     print("Enter asset id>")
     assetid = input()
@@ -379,7 +375,6 @@ def download(baseurl, display=False):
     api = '/image'
     url = baseurl + api + '/' + assetid
 
-    # res = requests.get(url)
     res = web_service_get(url)
 
     #
@@ -392,7 +387,7 @@ def download(baseurl, display=False):
       if res.status_code in [400, 500]:  # we'll have an error message
         body = res.json()
         print("Error message:", body["message"])
-      #
+
       return
 
     #
@@ -400,13 +395,10 @@ def download(baseurl, display=False):
     #
     body = res.json()
 
-    #
-    # TODO:
-    #
-    userid = "?"
-    assetname = "?"  
-    bucketkey = "?"
-    bytes = "?"
+    userid = body["user_id"]
+    assetname = body["asset_name"]
+    bucketkey = body["bucket_key"]
+    bytes_data = base64.b64decode(body["data"])
 
     print("userid:", userid)
     print("asset name:", assetname)
@@ -416,21 +408,10 @@ def download(baseurl, display=False):
     # write the binary data to a file (as a
     # binary file, not a text file):
     #
-    # TODO
-    #
+    with open(assetname, "wb") as outfile:
+      outfile.write(bytes_data)
 
     print("Downloaded from S3 and saved as '", assetname, "'")
-
-    #
-    # display image if requested:
-    #
-    if display:
-      print('Oops...')
-      print('Docker is not setup to display images, see if you can open and view locally...')
-      print('Oops...')
-      # image = img.imread(assetname)
-      # plt.imshow(image)
-      # plt.show()
 
   except Exception as e:
     logging.error("download() failed:")
@@ -455,7 +436,6 @@ def bucket_contents(baseurl):
   -------
   nothing
   """
-
   try:
     #
     # call the web service:
@@ -463,39 +443,40 @@ def bucket_contents(baseurl):
     api = '/bucket'
     url = baseurl + api
 
-    #
-    # we have to loop since data is returned page
-    # by page:
-    #
     lastkey = ""
     
     while True:
-      #
-      # make a request...
-      # check status code, if failed break out of loop
-      # any data? if not, break out of loop
-      # display data
-      #
+      res = web_service_get(url)
       
-      #
-      # TODO
-      #
+      if res.status_code != 200:
+        print("Failed with status code:", res.status_code)
+        print("url: " + url)
+        if res.status_code in [400, 500]:
+          body = res.json()
+          print("Error message:", body["message"])
+        return
+
+      body = res.json()
+      items = body["data"]
       
-      #
-      # prompt...
-      # if 'y' then continue, else break
-      #
+      if not items:
+        break
+
+      for item in items:
+        print("Key:", item["Key"])
+        print("LastModified:", item["LastModified"])
+        print("ETag:", item["ETag"])
+        print("Size:", item["Size"])
+        print("StorageClass:", item["StorageClass"])
+        print()
+
+      lastkey = items[-1]["Key"]
+
       print("another page? [y/n]")
       answer = input()
-      #
-      if answer == 'y':
-        # add parameter to url
-        url = baseurl + api
-        url += "?startafter=" + lastkey
-        #
-        continue
-      else:
+      if answer.lower() != 'y':
         break
+      url = baseurl + api + "?startafter=" + lastkey
 
   except Exception as e:
     logging.error("bucket_contents() failed:")
@@ -750,6 +731,10 @@ while cmd != 0:
     users(baseurl)
   elif cmd == 3:
     assets(baseurl)
+  elif cmd == 4:
+    download(baseurl)
+  elif cmd == 6:
+    bucket_contents(baseurl)
   #
   #
   # TODO: add calls to command functions for 4 - 7

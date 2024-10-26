@@ -3,7 +3,7 @@
 # a simple photo application for photo storage and viewing.
 #
 # Authors:
-#   
+    #   
 #   <<<Lucas Oktay>>>
 #
 #   Starter code: Prof. Joe Hummel
@@ -448,17 +448,11 @@ def add_user(baseurl):
 
     api = '/user'
     url = baseurl + api
-
-
-
     res = requests.put(url, json=data)
 
     if res.status_code != 200:
-      # print("Failed with status code:", res.status_code)
-      # print("url: " + url)
-      if res.status_code in [400, 500]:
-        body = res.json()
-        print(body["message"])
+      print("status code:", res.status_code)
+      print("res: ", res.json())
       return
 
     body = res.json()

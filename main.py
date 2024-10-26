@@ -1,4 +1,3 @@
-#
 # Client-side python app for photoapp, this time working with
 # web service, which in turn uses AWS S3 and RDS to implement
 # a simple photo application for photo storage and viewing.
@@ -9,7 +8,6 @@
 #
 #   Starter code: Prof. Joe Hummel
 #   Northwestern University
-#
 
 import base64
 import logging
@@ -22,10 +20,6 @@ from configparser import ConfigParser
 
 import jsons  # relational-object mapping
 import requests  # calling web service
-
-# doesn't work in docker (not easily):
-# import matplotlib.pyplot as plt
-# import matplotlib.image as img
 
 
 ###################################################################
@@ -88,23 +82,12 @@ def web_service_get(url):
       response = requests.get(url)
         
       if response.status_code in [200, 400, 500]:
-        #
-        # we consider this a successful call and response
-        #
         break;
 
-      #
-      # failed, try again?
-      #
       retries = retries + 1
       if retries < 3:
-        # try at most 3 times
         time.sleep(retries)
         continue
-          
-      #
-      # if get here, we tried 3 times, we give up:
-      #
       break
 
     return response
@@ -176,33 +159,19 @@ def stats(baseurl):
   """
 
   try:
-    #
-    # call the web service:
-    #
     api = '/stats'
     url = baseurl + api
-
-    # res = requests.get(url)
     res = web_service_get(url)
 
-    #
-    # let's look at what we got back:
-    #
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code in [400, 500]:  # we'll have an error message
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
+      if res.status_code in [400, 500]:
         body = res.json()
-        print("Error message:", body["message"])
-      #
+        print(body["message"])
       return
 
-    #
-    # deserialize and extract stats:
-    #
     body = res.json()
-    #
     print("bucket status:", body["message"])
     print("# of users:", body["db_numUsers"])
     print("# of assets:", body["db_numAssets"])
@@ -232,42 +201,27 @@ def users(baseurl):
   """
 
   try:
-    #
-    # call the web service:
-    #
     api = '/users'
     url = baseurl + api
 
-    # res = requests.get(url)
     res = web_service_get(url)
 
-    #
-    # let's look at what we got back:
-    #
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
       if res.status_code in [400, 500]:  # we'll have an error message
         body = res.json()
-        print("Error message:", body["message"])
-      #
+        print(body["message"])
+
       return
 
-    #
-    # deserialize and extract users:
-    #
     body = res.json()
-    #
-    # let's map each dictionary into a User object:
-    #
+
     users = []
     for row in body["data"]:
       user = jsons.load(row, User)
       users.append(user)
-    #
-    # Now we can think OOP:
-    #
+
     for user in users:
       print(user.userid)
       print(" ", user.email)
@@ -299,42 +253,26 @@ def assets(baseurl):
   """
 
   try:
-    #
-    # call the web service:
-    #
     api = '/assets'
     url = baseurl + api
 
-    # res = requests.get(url)
     res = web_service_get(url)
 
-    #
-    # let's look at what we got back:
-    #
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code in [400, 500]:  # we'll have an error message
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
+      if res.status_code in [400, 500]:
         body = res.json()
-        print("Error message:", body["message"])
-      #
+        print(body["message"])
       return
 
-    #
-    # deserialize and extract assets:
-    #
     body = res.json()
-    #
-    # let's map each dictionary into an Asset object:
-    #
+
     assets = []
     for row in body["data"]:
       asset = jsons.load(row, Asset)
       assets.append(asset)
-    #
-    # Now we can think OOP:
-    #
+
     for asset in assets:
       print(asset.assetid)
       print(" ", asset.userid)
@@ -369,30 +307,20 @@ def download(baseurl):
     print("Enter asset id>")
     assetid = input()
 
-    #
-    # call the web service:
-    #
     api = '/image'
     url = baseurl + api + '/' + assetid
 
     res = web_service_get(url)
 
-    #
-    # let's look at what we got back:
-    #
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code in [400, 500]:  # we'll have an error message
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
+      if res.status_code in [400, 500]:
         body = res.json()
-        print("Error message:", body["message"])
+        print(body["message"])
 
       return
 
-    #
-    # deserialize and extract image:
-    #
     body = res.json()
 
     userid = body["user_id"]
@@ -404,10 +332,6 @@ def download(baseurl):
     print("asset name:", assetname)
     print("bucket key:", bucketkey)
 
-    #
-    # write the binary data to a file (as a
-    # binary file, not a text file):
-    #
     with open(assetname, "wb") as outfile:
       outfile.write(bytes_data)
 
@@ -437,9 +361,6 @@ def bucket_contents(baseurl):
   nothing
   """
   try:
-    #
-    # call the web service:
-    #
     api = '/bucket'
     url = baseurl + api
 
@@ -449,11 +370,11 @@ def bucket_contents(baseurl):
       res = web_service_get(url)
       
       if res.status_code != 200:
-        print("Failed with status code:", res.status_code)
-        print("url: " + url)
+        # print("Failed with status code:", res.status_code)
+        # print("url: " + url)
         if res.status_code in [400, 500]:
           body = res.json()
-          print("Error message:", body["message"])
+          print(body["message"])
         return
 
       body = res.json()
@@ -463,15 +384,14 @@ def bucket_contents(baseurl):
         break
 
       for item in items:
-        print("Key:", item["Key"])
-        print("LastModified:", item["LastModified"])
-        print("ETag:", item["ETag"])
-        print("Size:", item["Size"])
-        print("StorageClass:", item["StorageClass"])
-        print()
+        print(item["Key"])
+        print(" ", item["LastModified"])
+        print(" ", item["Size"])
 
       lastkey = items[-1]["Key"]
 
+      if len(items) < 12:
+        break
       print("another page? [y/n]")
       answer = input()
       if answer.lower() != 'y':
@@ -517,55 +437,42 @@ def add_user(baseurl):
     print("Enter user's first (given) name>")
     first_name = input()
 
-    # generate unique folder name:
     folder = str(uuid.uuid4())
 
-    #
-    # build the data packet:
-    #
-    # TODO
-    #
     data = {
-      "?": email,
-      "??": last_name,
-      "???": first_name,
-      "???": folder
+      "email": email,
+      "lastname": last_name,
+      "firstname": first_name,
+      "bucketfolder": folder
     }
 
-    #
-    # call the web service:
-    #
     api = '/user'
     url = baseurl + api
-    
-    #
-    # TODO
-    #
-    # res = requests.???(url, json=???)
-    #
 
-    #
-    # let's look at what we got back:
-    #
+
+
+    res = requests.put(url, json=data)
+
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code in [400, 500]:  # we'll have an error message
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
+      if res.status_code in [400, 500]:
         body = res.json()
-        print("Error message:", body["message"])
-      #
+        print(body["message"])
       return
 
-    #
-    # success, extract userid:
-    #
     body = res.json()
 
     userid = body["userid"]
     message = body["message"]
 
     print("User", userid, "successfully", message)
+
+  except Exception as e:
+    logging.error("add_user() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
 
   except Exception as e:
     logging.error("add_user() failed:")
@@ -606,48 +513,28 @@ def upload(baseurl):
     print("Enter user id>")
     userid = input()
 
-    #
-    # build the data packet:
-    #
     infile = open(local_filename, "rb")
     bytes = infile.read()
     infile.close()
 
-    #
-    # now encode the image as base64. Note b64encode returns
-    # a bytes object, not a string. So then we have to convert
-    # (decode) the bytes -> string, and then we can serialize
-    # the string as JSON for upload to server:
-    #
     data = base64.b64encode(bytes)
     datastr = data.decode()
 
     data = {"assetname": local_filename, "data": datastr}
 
-    #
-    # call the web service:
-    #
     api = '/image'
     url = baseurl + api + "/" + userid
 
     res = requests.post(url, json=data)
 
-    #
-    # let's look at what we got back:
-    #
     if res.status_code != 200:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code in [400, 500]:  # we'll have an error message
+      # print("Failed with status code:", res.status_code)
+      # print("url: " + url)
+      if res.status_code in [400, 500]:
         body = res.json()
-        print("Error message:", body["message"])
-      #
+        print(body["message"])
       return
 
-    #
-    # success, extract userid:
-    #
     body = res.json()
 
     assetid = body["assetid"]
@@ -667,12 +554,8 @@ def upload(baseurl):
 print('** Welcome to PhotoApp v2 **')
 print()
 
-# eliminate traceback so we just get error message:
 sys.tracebacklimit = 0
 
-#
-# what config file should we use for this session?
-#
 config_file = 'photoapp-client-config.ini'
 
 print("What config file to use for this session?")
@@ -680,28 +563,19 @@ print("Press ENTER to use default (photoapp-client-config.ini),")
 print("otherwise enter name of config file>")
 s = input()
 
-if s == "":  # use default
-  pass  # already set
+if s == "":
+  pass
 else:
   config_file = s
 
-#
-# does config file exist?
-#
 if not pathlib.Path(config_file).is_file():
   print("**ERROR: config file '", config_file, "' does not exist, exiting")
   sys.exit(0)
 
-#
-# setup base URL to web service:
-#
 configur = ConfigParser()
 configur.read(config_file)
 baseurl = configur.get('client', 'webservice')
 
-#
-# make sure baseurl does not end with /, if so remove:
-#
 if len(baseurl) < 16:
   print("**ERROR**")
   print("**ERROR: baseurl '", baseurl, "' in .ini file is empty or not nearly long enough, please fix")
@@ -716,15 +590,9 @@ lastchar = baseurl[len(baseurl) - 1]
 if lastchar == "/":
   baseurl = baseurl[:-1]
 
-# print(baseurl)
-
-#
-# main processing loop:
-#
 cmd = prompt()
 
 while cmd != 0:
-  #
   if cmd == 1:
     stats(baseurl)
   elif cmd == 2:
@@ -735,20 +603,13 @@ while cmd != 0:
     download(baseurl)
   elif cmd == 6:
     bucket_contents(baseurl)
-  #
-  #
-  # TODO: add calls to command functions for 4 - 7
-  #
-  #
+  elif cmd == 7:
+    add_user(baseurl)
   elif cmd == 8:
     upload(baseurl)
   else:
     print("** Unknown command, try again...")
-  #
   cmd = prompt()
 
-#
-# done
-#
 print()
 print('** done **')
